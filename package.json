@@ -1,0 +1,41 @@
+{
+  "name": "@dinakars777/neuro-forge",
+  "version": "1.0.0",
+  "description": "The ultimate AI Dev Context Compressor. Instantly gather, compress, and copy your working files to the clipboard.",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "neuro-forge": "dist/index.js",
+    "forge": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup src/index.ts --format esm --clean"
+  },
+  "keywords": [
+    "ai",
+    "context",
+    "compress",
+    "llm",
+    "chatgpt",
+    "claude",
+    "git"
+  ],
+  "author": "Dinakar Sarbada",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "clipboardy": "^4.0.0",
+    "commander": "^11.1.0",
+    "execa": "^8.0.1",
+    "ignore": "^5.3.0",
+    "minimatch": "^9.0.3",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/minimatch": "^5.1.2",
+    "@types/node": "^20.10.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.2"
+  }
+}
