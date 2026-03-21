@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import ignore from 'ignore';
-import minimatch from 'minimatch';
+import { encodingForModel } from 'js-tiktoken';
 
 const ALWAYS_IGNORE = [
   'package-lock.json',
@@ -22,10 +22,13 @@ const ALWAYS_IGNORE = [
   '.next/**/*'
 ];
 
-export async function packFiles(filePaths: string[], gitRoot: string): Promise<{ text: string, fileCount: number, tokensSaved: number }> {
-  let bundledText = '# Context Array\\n\\n';
+export async function packFiles(
+  filePaths: string[], 
+  gitRoot: string,
+  customPrompt?: string
+): Promise<{ text: string, fileCount: number, tokenCount: number }> {
+  let bundledText = '# Context Array\n\n';
   let packedFileCount = 0;
-  let tokensSaved = 0; // rough estimate based on stripped empty lines and comments
 
   const ig = ignore().add(ALWAYS_IGNORE);
 
@@ -45,10 +48,7 @@ export async function packFiles(filePaths: string[], gitRoot: string): Promise<{
     const content = fs.readFileSync(absPath, 'utf-8');
     
     // Naive Compression: Strip purely empty lines (consecutive \n) to save tokens
-    const originalLength = content.length;
-    let strippedContent = content.replace(/\\n\\s*\\n/g, '\\n');
-
-    tokensSaved += Math.floor((originalLength - strippedContent.length) / 4); // 4 chars per token roughly
+    let strippedContent = content.replace(/\n\s*\n/g, '\n');
     
     bundledText += `## File: ${relPath}\n`
     bundledText += `\`\`\`${ext.replace('.', '')}\n`
@@ -58,5 +58,16 @@ export async function packFiles(filePaths: string[], gitRoot: string): Promise<{
     packedFileCount++;
   }
 
-  return { text: bundledText.trim(), fileCount: packedFileCount, tokensSaved };
+  // Append custom prompt if provided
+  if (customPrompt) {
+    bundledText += `---\n\n# Question\n\n${customPrompt}\n`;
+  }
+
+  // Calculate token count using tiktoken (GPT-4 encoding)
+  const enc = encodingForModel('gpt-4');
+  const tokens = enc.encode(bundledText);
+  const tokenCount = tokens.length;
+  enc.free();
+
+  return { text: bundledText.trim(), fileCount: packedFileCount, tokenCount };
 }
