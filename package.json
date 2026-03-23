@@ -1,6 +1,6 @@
 {
   "name": "@dinakars777/neuro-forge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The ultimate AI Dev Context Compressor. Instantly gather, compress, and copy your working files to the clipboard.",
   "main": "dist/index.js",
   "type": "module",
