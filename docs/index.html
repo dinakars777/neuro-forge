@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>neuro-forge - AI Context Compressor</title>
+    <meta name="description" content="Compress your codebase for LLMs instantly. Real token counting, smart file selection, clipboard-first workflow.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <header>
+        <div class="container">
+            <div class="logo">🧠🔨</div>
+            <h1>neuro-forge</h1>
+            <p class="tagline">The Ultimate AI Context Compressor</p>
+            
+            <div class="install-box">
+                <code>npx @dinakars777/neuro-forge compress</code>
+            </div>
+
+            <div class="buttons">
+                <a href="https://github.com/dinakars777/neuro-forge" class="btn btn-secondary">
+                    <span>⭐ Star on GitHub</span>
+                </a>
+                <a href="https://github.com/dinakars777/neuro-forge" class="btn btn-primary">
+                    <span>View on GitHub</span>
+                </a>
+                <a href="https://www.npmjs.com/package/@dinakars777/neuro-forge" class="btn btn-secondary">
+                    <span>View on npm</span>
+                </a>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">⚡</div>
+                    <div class="stat-label">Zero Config</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">📊</div>
+                    <div class="stat-label">Real Token Counting</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">📋</div>
+                    <div class="stat-label">Clipboard First</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="problem-solution">
+        <div class="container">
+            <div class="comparison">
+                <div class="before">
+                    <h3>❌ Before</h3>
+                    <ul>
+                        <li>Manually cat 5 different files</li>
+                        <li>Copy-paste into Claude/ChatGPT</li>
+                        <li>Waste tokens on boilerplate</li>
+                        <li>No idea if you're over context limit</li>
+                    </ul>
+                </div>
+                <div class="after">
+                    <h3>✅ After</h3>
+                    <ul>
+                        <li>One command: <code>forge compress</code></li>
+                        <li>Auto-copies to clipboard</li>
+                        <li>Strips dead weight, saves tokens</li>
+                        <li>Shows exact token count + warnings</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>Powerful Features</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Smart Git Analysis</h3>
+                    <p>Analyzes your active Git tree to find exactly what you're working on right now.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Real Token Counting</h3>
+                    <p>Shows exact token count using GPT-4 tokenizer. Warns when you exceed context limits.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🕐</div>
+                    <h3>Time-Based Selection</h3>
+                    <p>Grab files changed since "2 days ago" or "last Monday" with --since flag.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Target Specific Files</h3>
+                    <p>Bypass Git and pack exactly what you want with --files flag.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">💬</div>
+                    <h3>Custom Prompts</h3>
+                    <p>Append your question with --prompt to paste everything in one shot.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📁</div>
+                    <h3>File Output</h3>
+                    <p>Write to a file instead of clipboard with --out flag.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="demo">
+        <div class="container">
+            <h2>See It In Action</h2>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span class="terminal-button red"></span>
+                    <span class="terminal-button yellow"></span>
+                    <span class="terminal-button green"></span>
+                    <span class="terminal-title">Terminal</span>
+                </div>
+                <div class="terminal-body">
+<span class="prompt">$</span> <span class="command">npx @dinakars777/neuro-forge compress</span>
+
+<span class="info">🧠 Analyzing Git context...</span>
+<span class="success">✓ Found 12 changed files</span>
+
+<span class="info">📦 Compressing context...</span>
+<span class="file">  src/components/Auth.tsx</span>
+<span class="file">  src/api/users.ts</span>
+<span class="file">  src/db/schema.ts</span>
+<span class="file">  ... 9 more files</span>
+
+<span class="info">📊 Token count: 3,847 tokens</span>
+<span class="success">✓ Within GPT-4 Turbo limit (32K)</span>
+
+<span class="success">✓ Copied to clipboard!</span>
+<span class="dim">Just Cmd+V into Claude or ChatGPT</span>
+                </div>
+            </div>
+
+            <div class="use-cases">
+                <h3>Common Use Cases</h3>
+                <div class="use-case-grid">
+                    <div class="use-case">
+                        <code>forge compress --since "2 days ago"</code>
+                        <p>Get recent changes for code review</p>
+                    </div>
+                    <div class="use-case">
+                        <code>forge compress --files src/auth</code>
+                        <p>Target specific feature for debugging</p>
+                    </div>
+                    <div class="use-case">
+                        <code>forge compress --prompt "Find the bug"</code>
+                        <p>Include your question in the payload</p>
+                    </div>
+                    <div class="use-case">
+                        <code>forge compress --out context.md</code>
+                        <p>Save context for later reference</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Compress?</h2>
+            <p>Install in seconds. Start compressing immediately.</p>
+            <div class="buttons">
+                <a href="https://github.com/dinakars777/neuro-forge" class="btn btn-primary">
+                    <span>Get Started →</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built with ❤️ by <a href="https://github.com/dinakars777">Dinakar Sarbada</a></p>
+            <p>
+                <a href="https://github.com/dinakars777/neuro-forge">GitHub</a> • 
+                <a href="https://www.npmjs.com/package/@dinakars777/neuro-forge">npm</a> • 
+                <a href="https://github.com/dinakars777/neuro-forge/issues">Report Issue</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
