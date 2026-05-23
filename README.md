@@ -111,6 +111,10 @@ Unlike generic repo packers, neuro-forge is laser-focused on the **active develo
 - **Workflow integration** — clipboard-first, prompt appending, time-based selection
 - **Smart defaults** — targets what you're working on right now, not the entire repo
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for planned package, CLI, privacy, and developer-experience improvements.
+
 ## License
 
 MIT
