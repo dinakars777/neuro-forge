@@ -10,6 +10,12 @@ import { packFiles } from './packer';
 
 const program = new Command();
 
+const CONTEXT_WARNINGS = [
+  { limit: 200000, label: 'common 200K context windows' },
+  { limit: 128000, label: 'common 128K context windows' },
+  { limit: 32000, label: 'common 32K context windows' }
+];
+
 program
   .name('neuro-forge')
   .description('The ultimate AI Dev Context Compressor.')
@@ -84,10 +90,9 @@ program
     console.log(pc.gray(`| Token count: `) + pc.magenta(`${tokenCount.toLocaleString()} tokens`));
     
     // Token limit warnings
-    if (tokenCount > 128000) {
-      console.log(pc.yellow(`⚠ Warning: Exceeds Claude 3.5 Sonnet context limit (200K tokens)`));
-    } else if (tokenCount > 32000) {
-      console.log(pc.yellow(`⚠ Warning: Exceeds GPT-4 Turbo context limit (128K tokens)`));
+    const contextWarning = CONTEXT_WARNINGS.find(({ limit }) => tokenCount > limit);
+    if (contextWarning) {
+      console.log(pc.yellow(`⚠ Warning: Exceeds ${contextWarning.label}`));
     }
     console.log();
 

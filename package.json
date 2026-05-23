@@ -10,7 +10,9 @@
   },
   "scripts": {
     "dev": "tsup --watch",
-    "build": "tsup src/index.ts --format esm --clean"
+    "build": "tsup src/index.ts --format esm --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "keywords": [
     "ai",

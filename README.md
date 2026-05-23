@@ -12,7 +12,7 @@ When you hit a bug spanning 5 different files, you manually `cat` or copy-paste 
 
 - 🧠 Analyzes your active Git tree to find exactly what you're working on
 - 📊 **Real token counting** — shows exact token count using GPT-4 tokenizer
-- ⚠️ **Context limit warnings** — alerts when you exceed GPT-4 or Claude limits
+- ⚠️ **Context limit warnings** — alerts when you exceed common model context windows
 - ✂️ Strips dead weight (empty lines, massive breaks) to save tokens
 - 📋 Injects the result directly into your OS clipboard
 - 🎯 **Target specific files/folders** — bypass Git and pack exactly what you want
@@ -80,7 +80,7 @@ forge compress --since "3 days ago" --prompt "Review this feature" --out review.
    // ...content...
    ````
 3. Calculates exact token count using GPT-4 tokenizer
-4. Warns you if you're exceeding context limits (32K for GPT-4 Turbo, 128K for Claude)
+4. Warns you if you're exceeding common 32K, 128K, or 200K context windows
 5. Copies the entire payload to your clipboard — just `Cmd+V` into your LLM
 
 ## Options

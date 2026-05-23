@@ -2,6 +2,11 @@ import { execa } from 'execa';
 import fs from 'fs';
 import path from 'path';
 
+function isWithinDirectory(parent: string, child: string): boolean {
+  const relativePath = path.relative(parent, child);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
+
 export async function getGitRoot(cwd: string): Promise<string> {
   try {
     const { stdout } = await execa('git', ['rev-parse', '--show-toplevel'], { cwd });
@@ -56,12 +61,16 @@ export async function getFilesSince(cwd: string, since: string): Promise<string[
 
 export async function getSpecificFiles(cwd: string, patterns: string[]): Promise<string[]> {
   const root = await getGitRoot(cwd);
+  const rootRealPath = fs.realpathSync(root);
   const resolvedFiles: string[] = [];
 
   for (const pattern of patterns) {
     const absPath = path.resolve(cwd, pattern);
     
     if (fs.existsSync(absPath)) {
+      const realPath = fs.realpathSync(absPath);
+      if (!isWithinDirectory(rootRealPath, realPath)) continue;
+
       const stat = fs.statSync(absPath);
       
       if (stat.isFile()) {
@@ -74,6 +83,9 @@ export async function getSpecificFiles(cwd: string, patterns: string[]): Promise
           
           for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
+            const fullRealPath = fs.realpathSync(fullPath);
+            if (!isWithinDirectory(rootRealPath, fullRealPath)) continue;
+
             if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git') {
               files.push(...walkDir(fullPath));
             } else if (entry.isFile()) {

@@ -12,6 +12,10 @@ import fs3 from "fs";
 import { execa } from "execa";
 import fs from "fs";
 import path from "path";
+function isWithinDirectory(parent, child) {
+  const relativePath = path.relative(parent, child);
+  return relativePath === "" || !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
+}
 async function getGitRoot(cwd) {
   try {
     const { stdout } = await execa("git", ["rev-parse", "--show-toplevel"], { cwd });
@@ -46,10 +50,13 @@ async function getFilesSince(cwd, since) {
 }
 async function getSpecificFiles(cwd, patterns) {
   const root = await getGitRoot(cwd);
+  const rootRealPath = fs.realpathSync(root);
   const resolvedFiles = [];
   for (const pattern of patterns) {
     const absPath = path.resolve(cwd, pattern);
     if (fs.existsSync(absPath)) {
+      const realPath = fs.realpathSync(absPath);
+      if (!isWithinDirectory(rootRealPath, realPath)) continue;
       const stat = fs.statSync(absPath);
       if (stat.isFile()) {
         resolvedFiles.push(absPath);
@@ -59,6 +66,8 @@ async function getSpecificFiles(cwd, patterns) {
           const entries = fs.readdirSync(dir, { withFileTypes: true });
           for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
+            const fullRealPath = fs.realpathSync(fullPath);
+            if (!isWithinDirectory(rootRealPath, fullRealPath)) continue;
             if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".git") {
               files.push(...walkDir(fullPath));
             } else if (entry.isFile()) {
@@ -97,9 +106,31 @@ var ALWAYS_IGNORE = [
   "build/**/*",
   ".next/**/*"
 ];
+function toIgnorePath(filePath) {
+  return filePath.split(path2.sep).join("/");
+}
+function isWithinDirectory2(parent, child) {
+  const relativePath = path2.relative(parent, child);
+  return relativePath === "" || !relativePath.startsWith("..") && !path2.isAbsolute(relativePath);
+}
+function isProbablyBinary(buffer) {
+  const bytesToCheck = Math.min(buffer.length, 8e3);
+  if (bytesToCheck === 0) return false;
+  let suspiciousBytes = 0;
+  for (let i = 0; i < bytesToCheck; i++) {
+    const byte = buffer[i];
+    if (byte === 0) return true;
+    const isAllowedControl = byte === 7 || byte === 8 || byte === 9 || byte === 10 || byte === 12 || byte === 13 || byte === 27;
+    if (byte < 32 && !isAllowedControl) {
+      suspiciousBytes++;
+    }
+  }
+  return suspiciousBytes / bytesToCheck > 0.3;
+}
 async function packFiles(filePaths, gitRoot, customPrompt) {
   let bundledText = "# Context Array\n\n";
   let packedFileCount = 0;
+  const rootRealPath = fs2.realpathSync(gitRoot);
   const ig = ignore().add(ALWAYS_IGNORE);
   const gitignorePath = path2.join(gitRoot, ".gitignore");
   if (fs2.existsSync(gitignorePath)) {
@@ -107,9 +138,13 @@ async function packFiles(filePaths, gitRoot, customPrompt) {
   }
   for (const absPath of filePaths) {
     const relPath = path2.relative(gitRoot, absPath);
-    if (ig.ignores(relPath)) continue;
+    const realPath = fs2.realpathSync(absPath);
+    if (!isWithinDirectory2(rootRealPath, realPath)) continue;
+    if (ig.ignores(toIgnorePath(relPath))) continue;
     const ext = path2.extname(absPath);
-    const content = fs2.readFileSync(absPath, "utf-8");
+    const buffer = fs2.readFileSync(absPath);
+    if (isProbablyBinary(buffer)) continue;
+    const content = buffer.toString("utf-8");
     let strippedContent = content.replace(/\n\s*\n/g, "\n");
     bundledText += `## File: ${relPath}
 `;
@@ -133,12 +168,16 @@ ${customPrompt}
   const enc = encodingForModel("gpt-4");
   const tokens = enc.encode(bundledText);
   const tokenCount = tokens.length;
-  enc.free();
   return { text: bundledText.trim(), fileCount: packedFileCount, tokenCount };
 }
 
 // src/index.ts
 var program = new Command();
+var CONTEXT_WARNINGS = [
+  { limit: 2e5, label: "common 200K context windows" },
+  { limit: 128e3, label: "common 128K context windows" },
+  { limit: 32e3, label: "common 32K context windows" }
+];
 program.name("neuro-forge").description("The ultimate AI Dev Context Compressor.").version("1.1.0");
 program.command("compress").description("Instantly gather, compress, and copy your working files to the clipboard.").option("--since <time>", 'Get files changed since a specific time (e.g., "2 days ago", "last Monday")').option("--files <paths...>", "Target specific files or folders (space-separated)").option("--prompt <text>", "Append a custom prompt/question to the context").option("--out <file>", "Write output to a file instead of clipboard").action(async (options) => {
   console.log();
@@ -188,10 +227,9 @@ program.command("compress").description("Instantly gather, compress, and copy yo
   }
   s.stop(pc.green(`\u2713 Successfully packed ${fileCount} files into a single context payload.`));
   console.log(pc.gray(`| Token count: `) + pc.magenta(`${tokenCount.toLocaleString()} tokens`));
-  if (tokenCount > 128e3) {
-    console.log(pc.yellow(`\u26A0 Warning: Exceeds Claude 3.5 Sonnet context limit (200K tokens)`));
-  } else if (tokenCount > 32e3) {
-    console.log(pc.yellow(`\u26A0 Warning: Exceeds GPT-4 Turbo context limit (128K tokens)`));
+  const contextWarning = CONTEXT_WARNINGS.find(({ limit }) => tokenCount > limit);
+  if (contextWarning) {
+    console.log(pc.yellow(`\u26A0 Warning: Exceeds ${contextWarning.label}`));
   }
   console.log();
   if (options.out) {
