@@ -22,6 +22,43 @@ const ALWAYS_IGNORE = [
   '.next/**/*'
 ];
 
+function toIgnorePath(filePath: string): string {
+  return filePath.split(path.sep).join('/');
+}
+
+function isWithinDirectory(parent: string, child: string): boolean {
+  const relativePath = path.relative(parent, child);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
+
+function isProbablyBinary(buffer: Buffer): boolean {
+  const bytesToCheck = Math.min(buffer.length, 8000);
+  if (bytesToCheck === 0) return false;
+
+  let suspiciousBytes = 0;
+
+  for (let i = 0; i < bytesToCheck; i++) {
+    const byte = buffer[i];
+
+    if (byte === 0) return true;
+
+    const isAllowedControl =
+      byte === 7 ||
+      byte === 8 ||
+      byte === 9 ||
+      byte === 10 ||
+      byte === 12 ||
+      byte === 13 ||
+      byte === 27;
+
+    if (byte < 32 && !isAllowedControl) {
+      suspiciousBytes++;
+    }
+  }
+
+  return suspiciousBytes / bytesToCheck > 0.3;
+}
+
 export async function packFiles(
   filePaths: string[], 
   gitRoot: string,
@@ -29,6 +66,7 @@ export async function packFiles(
 ): Promise<{ text: string, fileCount: number, tokenCount: number }> {
   let bundledText = '# Context Array\n\n';
   let packedFileCount = 0;
+  const rootRealPath = fs.realpathSync(gitRoot);
 
   const ig = ignore().add(ALWAYS_IGNORE);
 
@@ -40,12 +78,18 @@ export async function packFiles(
 
   for (const absPath of filePaths) {
     const relPath = path.relative(gitRoot, absPath);
+    const realPath = fs.realpathSync(absPath);
+
+    if (!isWithinDirectory(rootRealPath, realPath)) continue;
     
     // Ignore binaries, locks, and standard gitignored files
-    if (ig.ignores(relPath)) continue;
+    if (ig.ignores(toIgnorePath(relPath))) continue;
 
     const ext = path.extname(absPath);
-    const content = fs.readFileSync(absPath, 'utf-8');
+    const buffer = fs.readFileSync(absPath);
+    if (isProbablyBinary(buffer)) continue;
+
+    const content = buffer.toString('utf-8');
     
     // Naive Compression: Strip purely empty lines (consecutive \n) to save tokens
     let strippedContent = content.replace(/\n\s*\n/g, '\n');
@@ -67,7 +111,6 @@ export async function packFiles(
   const enc = encodingForModel('gpt-4');
   const tokens = enc.encode(bundledText);
   const tokenCount = tokens.length;
-  enc.free();
 
   return { text: bundledText.trim(), fileCount: packedFileCount, tokenCount };
 }
